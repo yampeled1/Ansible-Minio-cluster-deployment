@@ -1,4 +1,3 @@
---- #installation of jenkins
 - hosts: MinIO_storage
   remote_user: ansible
   become: yes
