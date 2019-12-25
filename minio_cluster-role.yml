@@ -1,6 +1,8 @@
 ---
   - name: "Creating Minio cluster, client and uploading files into bucket"
     hosts: localhost
+    vars:
+    dest: /home/yam
     remote_user: ansible
     connection: local 
     tasks:
@@ -12,33 +14,33 @@
     - name: Copy the docker-compose file for creating Minio cluster
       copy:
         src: /home/yam/Desktop/projects/Anyvision/Ansible-Minio-cluster-deployment/docker-compose.yaml
-        dest: /home/yam/docker-compose.yaml
+        dest: "{{ dest }}"/docker-compose.yaml
     
     - name: creating the MinIO cluster
-      shell: cd /home/yam && docker-compose up -d
+      shell: cd "{{ dest }}" && docker-compose up -d
       args:
         executable: /bin/bash
 
     - name: Download Minio-client
       get_url:
         url: https://dl.min.io/client/mc/release/linux-amd64/mc
-        dest: /home/yam/
+        dest: "{{ dest }}"
 
     - name: adding execitable permissions to mc client 
       file:
-        path: /home/yam/mc
+        path: "{{ dest }}"/mc
         mode: u+rw,g+wx,o+rwx
     
     - name: executing the mc client
-      shell: cd /home/yam && ./mc
+      shell: cd "{{ dest }}" && ./mc
       args:
         executable: /bin/bash
 
     - name: Adding Minio client config
-      shell: cd /home/yam && ./mc config host add minio http://0.0.0.0:9003 minio minio123
+      shell: cd "{{ dest }}" && ./mc config host add minio http://0.0.0.0:9003 minio minio123
 
     - name: Adding Minio Bucket named pipe
-      shell: cd /home/yam && ./mc mb minio/pipe
+      shell: cd "{{ dest }}" && ./mc mb minio/pipe
 
     - name: Creating 1000 files 
       file:
@@ -47,5 +49,5 @@
       loop: "{{ query('sequence', 'start=1 end=1000') }}"
 
     - name: Upload files into pipe
-      shell: cd /home/yam && ./mc cp /tmp/anyvision-{{ item }}.txt minio/pipe
+      shell: cd "{{ dest }}" && ./mc cp /tmp/anyvision-{{ item }}.txt minio/pipe
       loop: "{{ query('sequence', 'start=1 end=1000') }}"
